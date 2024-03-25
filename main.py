@@ -1,16 +1,25 @@
-# This is a sample Python script.
+import numpy as np
+import matplotlib.pyplot as plt
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+import loader
 
+train_images, categories = loader.load_image_from_folder_train('dataset/Train')
+test_images = loader.load_images_from_folder_test("dataset/Test")
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+print(train_images.shape)
+print(test_images.shape)
 
+# plot 10tich trenovacich obrazkov z roznych kategorii
+for i in range(10):
+    plt.subplot(2, 5, i + 1)
+    plt.imshow(train_images[i * 3000].reshape(32, 32), cmap='gray')  # max je 39209
+    plt.title(f"Cat.: {categories[i * 3000]}")
+    plt.axis('off')
+plt.show()
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+# plot 10tich testovacich obrazkov
+for i in range(10):
+    plt.subplot(2, 5, i + 1)
+    plt.imshow(test_images[i * 500].reshape(32, 32), cmap='gray')  # max je 12630
+    plt.axis('off')
+plt.show()
