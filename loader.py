@@ -1,5 +1,7 @@
 import os
 import cv2
+import torch
+from torchvision import transforms
 import numpy as np
 
 
@@ -17,7 +19,10 @@ def load_image_from_folder_train(folder, image_size=(32, 32)):
                 img_resized = cv2.resize(img, image_size)  # obrazky nie su rovnakej velkosti
                 images.append(img_resized)
                 categories.append(int(number))
-    return np.array(images), np.array(categories)
+
+    images_tensor = torch.stack([transforms.ToTensor()(img) for img in images])
+    categories_tensor = torch.tensor(categories)
+    return images_tensor, categories_tensor
 
 
 # load metoda pre testovacie data bez kategorii
@@ -29,4 +34,6 @@ def load_images_from_folder_test(folder, image_size=(32, 32)):
         if img is not None:
             img_resized = cv2.resize(img, image_size)  # obrazky nie su rovnakej velkosti
             images.append(img_resized)
-    return np.array(images)
+
+    images_tensor = torch.stack([transforms.ToTensor()(img) for img in images])
+    return images_tensor

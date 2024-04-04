@@ -1,15 +1,10 @@
-import numpy as np
 import matplotlib.pyplot as plt
-
 import loader
 
+# nacitanie do tensorov
 train_images, categories = loader.load_image_from_folder_train('dataset/Train')
 test_images = loader.load_images_from_folder_test("dataset/Test")
 
-print(train_images.shape)
-print(test_images.shape)
-
-# TODO nacitat do tensorov
 # TODO Data preprocessing - vsetky na rovnaku velkost/cierno-biele <-> farebne
 # TODO navrhnut zakladnu konvolucnu neuronovu siet - vyskusat rozne architektury / rozne vrstvy
 # TODO trenovanie - early stopping, skusit dynamicky znizovt/zvysovat learning rate, vyskusat rozne optimizers...
