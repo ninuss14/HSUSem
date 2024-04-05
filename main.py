@@ -22,8 +22,8 @@ train_dataset = custom_dataset.CustomDataset(train_images, train_categories)
 test_dataset = custom_dataset.CustomDataset(test_images, test_categories)
 
 # loadovanie batch-u dat
-train_loader = DataLoader(train_dataset, 1000, False)
-test_loader = DataLoader(test_dataset, 100, False)
+train_loader = DataLoader(train_dataset, 5000, True)
+test_loader = DataLoader(test_dataset, 1000, False)
 
 # trenovanie neuronovej siete
 model = neural_network.NeuralNetwork()

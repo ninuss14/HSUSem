@@ -1,9 +1,9 @@
 import os
+
 import cv2
-import torch
 import pandas as pd
+import torch
 from torchvision import transforms
-import numpy as np
 
 
 # load metoda pre trenovacie data s kategoriami v osobitnych priecinkoch
