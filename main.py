@@ -8,11 +8,6 @@ import evaluator
 import loader
 import neural_network
 
-# TODO navrhnut zakladnu konvolucnu neuronovu siet - vyskusat rozne architektury / rozne vrstvy
-# TODO trenovanie - early stopping, skusit dynamicky znizovt/zvysovat learning rate, vyskusat rozne optimizers...
-# TODO vyhodnotit spolahlivost - confusion matrix, MSE...
-# TODO skusit pouzit early stopping, znizit pocet vah, skusit farebne obrazky
-
 # nacitanie do tensorov
 train_images, train_categories = loader.load_image_from_folder_train('dataset/Train')
 test_images, test_categories = loader.load_images_from_folder_test("dataset/Test")
@@ -32,11 +27,13 @@ optimizer = optim.Adam(model.parameters(), 0.001)
 
 train_losses = []
 validation_losses = []
-for epoch in range(10):
+epochs = []
+
+for epoch in range(50):
     model.train()
     e_loss = []
     for b_images, b_labels in train_loader:
-        b_images = b_images.to('cpu')  # nemame grafiku od nvidie (cuda), musime dat potom do colabu
+        b_images = b_images.to('cpu')
         b_labels = b_labels.to('cpu')
         pred_labels = model(b_images)
         optimizer.zero_grad()
@@ -51,3 +48,5 @@ for epoch in range(10):
     validation_losses.append(validation_loss)
 
     print('Epoch:', epoch, 'Train Loss:', train_losses[-1], 'Validation loss: ', validation_loss, 'Accuracy:', accuracy)
+
+
