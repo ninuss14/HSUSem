@@ -89,50 +89,50 @@ class ConvolutionalNeuralNetwork(nn.Module):
 class FullyConvolutionalNeuralNetwork(nn.Module):
     def __init__(self):
         super(FullyConvolutionalNeuralNetwork, self).__init__()
-        self.conv1 = nn.Conv2d(1, 6, 3, padding=1)  # Z tejto vyjde: [batch_size, 6, 32, 32]
-        self.conv2 = nn.Conv2d(6, 12, 3, padding=1)  # Z tejto vyjde: [batch_size, 12, 16, 16]
-        self.conv3 = nn.Conv2d(12, 24, 3, padding=1)
-        self.conv4 = nn.Conv2d(24, 48, 3, padding=1)
+        self.conv1 = nn.Conv2d(1, 12, 3, padding=1)
+        self.conv2 = nn.Conv2d(12, 24, 5, padding=1)
+        self.conv3 = nn.Conv2d(24, 48, 3, padding=1)
+        self.conv4 = nn.Conv2d(48, 64, 5, padding=1)
 
-        self.dropout = nn.Dropout2d()
-        self.dropout2 = nn.Dropout2d(0.5)
+        self.dropout = nn.Dropout2d(0.3)
+        self.pool2 = nn.MaxPool2d(2, 2)  # Rozdelí každú dimenziu napoly
 
-        self.pool = nn.MaxPool2d(2, 2)  # Rozdelí každú dimenziu napoly
-
-        # Výstup z druhej konvolučnej siete (12 kanálov, 6x6 veľkosť)
-        self.conv_output_size = 48
         # Plne konvolučná vrstva - transformuje príznaky na formu ktoru pouzijeme na klasifikáciu pomocou klasifikačnej vrstvy
-        self.fc = nn.Conv2d(self.conv_output_size, 128, 1)
+        self.fc = nn.Conv2d(64, 128, 1)
+
         # Klasifikačná vrstva
         self.classifier = nn.Conv2d(128, 43, 1)  # 43 zodpovedá počtu kategórií (0-42)
         self.adaptive_pool = nn.AdaptiveAvgPool2d((1, 1))
 
         # normalizacia dat
-        self.bn1 = nn.BatchNorm2d(6)
-        self.bn2 = nn.BatchNorm2d(12)
-        self.bn3 = nn.BatchNorm2d(24)
-        self.bn4 = nn.BatchNorm2d(48)
+        self.bn1 = nn.BatchNorm2d(12)
+        self.bn2 = nn.BatchNorm2d(24)
+        self.bn3 = nn.BatchNorm2d(48)
+        self.bn4 = nn.BatchNorm2d(64)
 
         self.apply(init_weights)  # Inicializácia váh
 
     def forward(self, x):
-        # Začíname s 32x32 shape [5000,1,32,32]
+        # Začíname s 32x32 shape [batch_size,1,32,32]
         x = F.relu(self.bn1(self.conv1(x)))
-        # [batch_size, 6, 32, 32]
-        x = self.pool(x)
-        # [batch_size, 6, 16, 16]
+        # [batch_size, 12, 32, 32]
+        x = self.pool2(x)
+        # [batch_size, 12, 16, 16]
         x = self.dropout(x)
         x = F.relu(self.bn2(self.conv2(x)))
-        # [batch_size, 12, 16, 16]
-        x = self.pool(x)
-        # [batch_size, 12, 8, 8]
+        # [batch_size, 24, 14, 14]
+        x = self.pool2(x)
+        # [batch_size, 12, 7, 7]
+        x = self.dropout(x)
         x = F.relu(self.bn3(self.conv3(x)))
-        # [batch_size, 24, 8, 8]
-        x = self.dropout2(x)
+        # [batch_size, 48, 6, 6]
+        x = self.pool2(x)
+        # [batch_size, 48, 3, 3]
+        x = self.dropout(x)
         x = F.relu(self.bn4(self.conv4(x)))
-        # [batch_size, 48, 8, 8]
+        # [batch_size, 64, 1, 1]
         x = F.relu(self.fc(x))
-        # [batch_size, 64, 8, 8]
+        # [batch_size, 128, 1, 1]
         x = self.adaptive_pool(x)
         # [batch_size, 64, 1, 1]
         x = self.classifier(x)
