@@ -21,15 +21,15 @@ train_loader = DataLoader(train_dataset, 5000, True)
 test_loader = DataLoader(test_dataset, 1000, False)
 
 # trenovanie neuronovej siete
-model = neural_network.NeuralNetwork()
+model = neural_network.FullyConvolutionalNeuralNetwork()
 loss_fn = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), 0.001)
+optimizer = optim.Adam(model.parameters(), 0.01)
 
 train_losses = []
 validation_losses = []
 epochs = []
 
-for epoch in range(50):
+for epoch in range(15):
     model.train()
     e_loss = []
     for b_images, b_labels in train_loader:
@@ -49,4 +49,7 @@ for epoch in range(50):
 
     print('Epoch:', epoch, 'Train Loss:', train_losses[-1], 'Validation loss: ', validation_loss, 'Accuracy:', accuracy)
 
-
+print(sum(
+    parameter.numel()
+    for parameter in model.parameters()
+))
