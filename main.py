@@ -1,14 +1,14 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import torch.nn as nn
 from torch import optim
 from torch.utils.data import DataLoader
-import matplotlib.pyplot as plt
-import torch
 
 import custom_dataset
 import evaluator
 import loader
 import neural_network
+import residual_network
 
 # nacitanie do tensorov
 train_images, train_categories = loader.load_image_from_folder_train('dataset/Train')
@@ -23,7 +23,8 @@ train_loader = DataLoader(train_dataset, 2000, True)
 test_loader = DataLoader(test_dataset, 200, True)
 
 # trenovanie neuronovej siete
-model = neural_network.FullyConvolutionalNeuralNetwork()
+# model = neural_network.FullyConvolutionalNeuralNetwork()
+model = residual_network.ResNet(residual_network.BasicBlock, [2, 2, 2, 2], num_classes=43)
 loss_fn = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), 0.01)
 scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.7)
