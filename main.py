@@ -3,28 +3,55 @@ import numpy as np
 import torch.nn as nn
 from torch import optim
 from torch.utils.data import DataLoader
+from torchvision.transforms import transforms
 
 import custom_dataset
 import evaluator
 import loader
 import neural_network
 import residual_network
+import metric_calculator
 
 # nacitanie do tensorov
 train_images, train_categories = loader.load_image_from_folder_train('dataset/Train')
 test_images, test_categories = loader.load_images_from_folder_test("dataset/Test")
+
+# data preprocessing - normalizacia
+train_transforms = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.RandomHorizontalFlip(),  # data augmentation
+    transforms.RandomRotation(10),  # data augmentation
+    transforms.Normalize(mean=[0.3193], std=[0.1605])
+])
+
+test_transforms = transforms.Compose([
+    # na testovacich uz nie je dobre nahodne rotovat
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.3193], std=[0.1605])
+])
 
 # spojit obrazky s kategoriami
 train_dataset = custom_dataset.CustomDataset(train_images, train_categories)
 test_dataset = custom_dataset.CustomDataset(test_images, test_categories)
 
 # loadovanie batch-u dat
-train_loader = DataLoader(train_dataset, 2000, True)
-test_loader = DataLoader(test_dataset, 200, True)
+train_loader = DataLoader(train_dataset, batch_size=2000, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=200, shuffle=True)
+
+# vypocet priemeru a std pre transformacie, spustame len raz
+# mean_value, std_value = metric_calculator.calculate_mean_std(train_loader)
+# mean_value_test, std_value_test = metric_calculator.calculate_mean_std(test_loader)
+#
+# print(mean_value)  # 0.3193
+# print(std_value)  # 0.1605
+# print(mean_value_test)  # 0.3169
+# print(std_value_test)  # 0.1620
+
 
 # trenovanie neuronovej siete
-# model = neural_network.FullyConvolutionalNeuralNetwork()
-model = residual_network.ResNet(residual_network.BasicBlock, [2, 2, 2, 2], num_classes=43)
+# model = neural_network.ConvolutionalNeuralNetwork()
+model = neural_network.FullyConvolutionalNeuralNetwork()
+# model = residual_network.ResNet(residual_network.BasicBlock, [2, 2, 2, 2], num_classes=43)
 loss_fn = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), 0.01)
 scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.7)
