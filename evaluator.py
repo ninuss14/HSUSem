@@ -1,5 +1,5 @@
-import torch
 import numpy as np
+import torch
 
 
 def evaluate_model(model, data_loader, loss_fn):
@@ -23,3 +23,20 @@ def evaluate_model(model, data_loader, loss_fn):
         losses.append(loss)
 
     return np.mean(losses), (true_predictions / total_samples)
+
+
+def evaluate_model_and_get_predictions(model, test_loader):
+    model.eval()
+    predictions = []
+    actual_labels = []
+
+    with torch.no_grad():
+        for images, labels in test_loader:
+            images = images.to('cpu')
+            labels = labels.to('cpu')
+            outputs = model(images)
+            _, predicted = torch.max(outputs, 1)
+            predictions.extend(predicted.numpy())
+            actual_labels.extend(labels.numpy())
+
+    return np.array(actual_labels), np.array(predictions)

@@ -4,6 +4,8 @@ import torch.nn as nn
 from torch import optim
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
 
 import custom_dataset
 import evaluator
@@ -17,7 +19,8 @@ test_images, test_categories = loader.load_images_from_folder_test("dataset/Test
 # data preprocessing - normalizacia
 train_transforms = transforms.Compose([
     transforms.RandomHorizontalFlip(),  # data augmentation
-    transforms.RandomRotation(10),  # data augmentation
+    transforms.RandomRotation(20),  # data augmentation
+    transforms.GaussianBlur((5, 5)),
     transforms.Normalize(mean=[0.3193], std=[0.1605])
 ])
 
@@ -66,7 +69,7 @@ accuracies = []
 
 best_validation_loss = float('inf')
 patience = 5  # Počet epoch, po ktorých sa má skoncit ak nemame lepsiu validation loss
-threshold = 0.95
+threshold = 0.85
 
 for epoch in range(0, 100):
     model.train()
@@ -105,7 +108,7 @@ for epoch in range(0, 100):
             break
 
 
-# Zobrazenie grafov
+# Early stopping graf
 plt.plot(train_losses, label='Train Loss')
 plt.plot(validation_losses, label='Validation Loss')
 # Zvýraznenie červenou čiarou počtu epoch, kedy došlo k early stoppingu
@@ -116,3 +119,12 @@ plt.title('Training and Validation Loss')
 plt.legend()
 plt.show()
 
+# Confusion matrix
+actual_labels, predictions = evaluator.evaluate_model_and_get_predictions(model, test_loader)
+conf_matrix = confusion_matrix(actual_labels, predictions)
+plt.figure(figsize=(20, 18))
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', xticklabels=range(43), yticklabels=range(43))
+plt.xlabel('Predicted labels')
+plt.ylabel('True labels')
+plt.title('Confusion Matrix')
+plt.show()

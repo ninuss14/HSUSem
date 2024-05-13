@@ -1,7 +1,6 @@
 import csv
 from collections import defaultdict
 import matplotlib.pyplot as plt
-import numpy as np
 
 
 def count_images_per_class(metadata_file):
@@ -53,11 +52,21 @@ def main(file_name):
         print(f"Class ID {class_id}: {count} pictures")
     # Plot histograms
     widths, heights, resolutions, ratios = read_image_metadata(file_name)
-    #plot_histogram(widths, 'Width Histogram ' + file_name, 'Width', 'Frequency', (30, 50))
-    #plot_histogram(heights, 'Height Histogram ' + file_name, 'Height', 'Frequency', (30, 50))
+    plot_histogram(widths, 'Width Histogram ' + file_name, 'Width', 'Frequency', (30, 50))
+    plot_histogram(heights, 'Height Histogram ' + file_name, 'Height', 'Frequency', (30, 50))
     plot_histogram(resolutions, 'Resolution Histogram ' + file_name, 'Resolution', 'Frequency', (0, 15000))
     plot_histogram(ratios, 'Width-to-Height Ratio Histogram ' + file_name, 'Width-to-Height Ratio', 'Frequency', (0.5, 1.3))
 
+    # Extract class IDs and frequencies from the dictionary
+    class_ids = list(class_id_counts.keys())
+    frequencies = list(class_id_counts.values())
+    plt.bar(class_ids, frequencies, color='blue', alpha=0.7)
+    plt.title("Number of Images per Class")
+    plt.xlabel("Class ID")
+    plt.ylabel("Frequency")
+    plt.xticks(range(0, 43))  # Set x-axis ticks from 1 to 43
+    plt.xticks(rotation=90)  # Rotate x-axis labels for better readability if needed
+    plt.show()
 
 if __name__ == "__main__":
     print("TRAIN :")
