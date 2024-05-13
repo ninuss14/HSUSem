@@ -9,8 +9,6 @@ import custom_dataset
 import evaluator
 import loader
 import neural_network
-import residual_network
-import metric_calculator
 
 # nacitanie do tensorov
 train_images, train_categories = loader.load_image_from_folder_train('dataset/Train')
@@ -18,7 +16,6 @@ test_images, test_categories = loader.load_images_from_folder_test("dataset/Test
 
 # data preprocessing - normalizacia
 train_transforms = transforms.Compose([
-    transforms.ToTensor(),
     transforms.RandomHorizontalFlip(),  # data augmentation
     transforms.RandomRotation(10),  # data augmentation
     transforms.Normalize(mean=[0.3193], std=[0.1605])
@@ -26,13 +23,12 @@ train_transforms = transforms.Compose([
 
 test_transforms = transforms.Compose([
     # na testovacich uz nie je dobre nahodne rotovat
-    transforms.ToTensor(),
     transforms.Normalize(mean=[0.3193], std=[0.1605])
 ])
 
 # spojit obrazky s kategoriami
-train_dataset = custom_dataset.CustomDataset(train_images, train_categories)
-test_dataset = custom_dataset.CustomDataset(test_images, test_categories)
+train_dataset = custom_dataset.CustomDataset(train_images, train_categories, transform=train_transforms)
+test_dataset = custom_dataset.CustomDataset(test_images, test_categories, transform=test_transforms)
 
 # loadovanie batch-u dat
 train_loader = DataLoader(train_dataset, batch_size=2000, shuffle=True)
@@ -52,9 +48,16 @@ test_loader = DataLoader(test_dataset, batch_size=200, shuffle=True)
 # model = neural_network.ConvolutionalNeuralNetwork()
 model = neural_network.FullyConvolutionalNeuralNetwork()
 # model = residual_network.ResNet(residual_network.BasicBlock, [2, 2, 2, 2], num_classes=43)
+
+# vypis poctu parametrov modelu
+print(sum(
+    parameter.numel()
+    for parameter in model.parameters()
+))
+
 loss_fn = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), 0.01)
-scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.7)
+scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
 
 train_losses = []
 validation_losses = []
@@ -63,7 +66,7 @@ accuracies = []
 
 best_validation_loss = float('inf')
 patience = 5  # Počet epoch, po ktorých sa má skoncit ak nemame lepsiu validation loss
-threshold = 0.90
+threshold = 0.95
 
 for epoch in range(0, 100):
     model.train()
@@ -101,12 +104,6 @@ for epoch in range(0, 100):
             print("Early stopping after epoch", epoch)
             break
 
-
-# vypis poctu parametrov modelu
-print(sum(
-    parameter.numel()
-    for parameter in model.parameters()
-))
 
 # Zobrazenie grafov
 plt.plot(train_losses, label='Train Loss')
