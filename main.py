@@ -71,7 +71,7 @@ print(sum(
 
 loss_fn = nn.CrossEntropyLoss(weight=class_weights_tensor)
 optimizer = optim.Adam(model.parameters(), 0.01)
-scheduler = optim.lr_scheduler.StepLR(optimizer, gamma=0.9, step_size=2)
+scheduler = optim.lr_scheduler.StepLR(optimizer, gamma=0.95, step_size=3)
 
 train_losses = []
 validation_losses = []
@@ -79,6 +79,8 @@ epochs = []
 accuracies = []
 
 best_validation_loss = float('inf')
+best_epoch = 0
+
 patience = 5  # Počet epoch, po ktorých sa má skoncit ak nemame lepsiu validation loss
 patience_counter = 0
 
@@ -109,11 +111,11 @@ for epoch in range(0, 1000):
     # Early stopping
     if validation_loss < best_validation_loss:
         best_validation_loss = validation_loss
+        best_epoch = epoch
         patience_counter = 0
 
         if best_validation_loss < 0.7:
             torch.save(model.state_dict(), 'best_model.pt')
-            #print("Model saved with validation loss:", best_validation_loss)
     else:
         patience_counter += 1
         if patience_counter >= patience:
@@ -132,6 +134,7 @@ plt.title('Training and Validation Loss')
 plt.legend()
 plt.show()
 
+
 # Confusion matrix
 actual_labels, predictions = evaluator.evaluate_model_and_get_predictions(model, test_loader)
 conf_matrix = confusion_matrix(actual_labels, predictions)
@@ -141,3 +144,13 @@ plt.xlabel('Predicted labels')
 plt.ylabel('True labels')
 plt.title('Confusion Matrix')
 plt.show()
+
+# Training and Validation Accuracy
+plt.plot(epochs, accuracies, label='Accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.title('Training and Validation Accuracy')
+plt.legend()
+plt.show()
+
+print("Best validation loss: ", best_validation_loss, " --Best epoch: ", best_epoch)
