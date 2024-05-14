@@ -60,30 +60,33 @@ def init_weights(m):
 class ConvolutionalNeuralNetwork(nn.Module):
     def __init__(self):
         super(ConvolutionalNeuralNetwork, self).__init__()
-        # zaciname s 32x32 shape
-        # pouzivame dve konvolucne siete kde po prvej mame 30x30 feature map
-        self.conv1 = nn.Conv2d(1, 10, 3, 1)  # z tejto vyjde: [batch_size, 10, 30, 30]
-        # ked aplikujeme pooling s 2x2 tak nam ostane 15x15 feature mapa
-        self.conv2 = nn.Conv2d(10, 20, 3, 1)  # z tejto vyjde: [batch_size, 20, 13, 13]
-
-        # po druhej konvolucnej sieti nam vnikne 13x13 a po poolingu 6x6
+        self.conv1 = nn.Conv2d(1, 10, 3, 1)
+        self.conv2 = nn.Conv2d(10, 20, 3, 1)
         self.dropout = nn.Dropout2d()
-        self.pool = nn.MaxPool2d(2, 2)  # rozdeli kazdu dimenziu napoly
-
-        # mame 20 output channels - musi matchovat posledy output z konvolucnej siete
-        # velkost vstupujuca do  linearnej vrstvy musi byt teda 20x6x6
-        self.l1 = nn.Linear(20 * 6 * 6, 128)  # 128 cislo mozeme menit, je to len common practice
+        self.pool = nn.MaxPool2d(2, 2)
+        self.l1 = nn.Linear(20 * 6 * 6, 128)
         self.l2 = nn.Linear(128, 43)  # 43 zodpovedana poctu nasich kategorii 0-42
 
         self.apply(init_weights)  # inicializacia vah
 
     def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
+        # Začíname s 32x32 shape [batch_size,1,32,32]
+        x = F.relu(self.conv1(x))
+        # [batch_size, 10, 32, 32]
+        x = self.pool(x)
+        # [batch_size, 10, 16, 16]
         x = self.dropout(x)
-        x = self.pool(F.relu(self.conv2(x)))
+        x = F.relu(self.conv2(x))
+        # [batch_size, 20, 16, 16]
+        x = self.pool(x)
+        # [batch_size, 20, 8, 8]
         x = x.flatten(1)
+        # [batch_size]
         x = F.relu(self.l1(x))
-        return self.l2(x)
+        # [batch_size]
+        x = self.l2(x)
+        # [batch_size]
+        return x
 
 
 class FullyConvolutionalNeuralNetwork(nn.Module):
@@ -95,7 +98,7 @@ class FullyConvolutionalNeuralNetwork(nn.Module):
         self.conv4 = nn.Conv2d(48, 64, 5, padding=1)
 
         self.dropout = nn.Dropout2d(0.3)
-        self.pool2 = nn.MaxPool2d(2, 2)  # Rozdelí každú dimenziu napoly
+        self.pool = nn.MaxPool2d(2, 2)  # Rozdelí každú dimenziu napoly
 
         # Plne konvolučná vrstva - transformuje príznaky na formu ktoru pouzijeme na klasifikáciu pomocou klasifikačnej vrstvy
         self.fc = nn.Conv2d(64, 128, 1)
@@ -116,17 +119,17 @@ class FullyConvolutionalNeuralNetwork(nn.Module):
         # Začíname s 32x32 shape [batch_size,1,32,32]
         x = F.relu(self.bn1(self.conv1(x)))
         # [batch_size, 12, 32, 32]
-        x = self.pool2(x)
+        x = self.pool(x)
         # [batch_size, 12, 16, 16]
         x = self.dropout(x)
         x = F.relu(self.bn2(self.conv2(x)))
         # [batch_size, 24, 14, 14]
-        x = self.pool2(x)
+        x = self.pool(x)
         # [batch_size, 12, 7, 7]
         x = self.dropout(x)
         x = F.relu(self.bn3(self.conv3(x)))
         # [batch_size, 48, 6, 6]
-        x = self.pool2(x)
+        x = self.pool(x)
         # [batch_size, 48, 3, 3]
         x = self.dropout(x)
         x = F.relu(self.bn4(self.conv4(x)))

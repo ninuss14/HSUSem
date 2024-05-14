@@ -19,8 +19,7 @@ test_images, test_categories = loader.load_images_from_folder_test("dataset/Test
 # data preprocessing - normalizacia
 train_transforms = transforms.Compose([
     transforms.RandomHorizontalFlip(),  # data augmentation
-    transforms.RandomRotation(20),  # data augmentation
-    transforms.GaussianBlur((5, 5)),
+    transforms.RandomRotation(10),  # data augmentation
     transforms.Normalize(mean=[0.3193], std=[0.1605])
 ])
 
@@ -60,7 +59,7 @@ print(sum(
 
 loss_fn = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), 0.01)
-scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
+scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
 
 train_losses = []
 validation_losses = []
@@ -69,7 +68,7 @@ accuracies = []
 
 best_validation_loss = float('inf')
 patience = 5  # Počet epoch, po ktorých sa má skoncit ak nemame lepsiu validation loss
-threshold = 0.85
+threshold = 0.9
 
 for epoch in range(0, 100):
     model.train()
