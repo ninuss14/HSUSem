@@ -1,18 +1,21 @@
 import csv
 from collections import defaultdict
+import numpy as np
+
 import matplotlib.pyplot as plt
 
 
 def count_images_per_class(metadata_file):
     class_id_counts = defaultdict(int)
+    total_samples = 0
 
     with open(metadata_file, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             class_id = int(row['ClassId'])
             class_id_counts[class_id] += 1
-
-    return class_id_counts
+            total_samples += 1
+    return class_id_counts, total_samples
 
 
 def read_image_metadata(metadata_file):
@@ -46,7 +49,7 @@ def plot_histogram(data, title, xlabel, ylabel, range):
 
 
 def main(file_name):
-    class_id_counts = count_images_per_class(file_name)
+    class_id_counts, total_samples = count_images_per_class(file_name)
     sorted_class_id_counts = sorted(class_id_counts.items(), key=lambda x: x[0])
     for class_id, count in sorted_class_id_counts:
         print(f"Class ID {class_id}: {count} pictures")
@@ -67,6 +70,10 @@ def main(file_name):
     plt.xticks(range(0, 43))  # Set x-axis ticks from 1 to 43
     plt.xticks(rotation=90)  # Rotate x-axis labels for better readability if needed
     plt.show()
+
+    class_weights = np.array([total_samples / count for count in frequencies])
+    class_weights /= np.sum(class_weights)  # Normalize the weights to sum up to 1
+    print("Class Weights:", class_weights)
 
 if __name__ == "__main__":
     print("TRAIN :")

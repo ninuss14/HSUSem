@@ -1,11 +1,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
+import torch
 import torch.nn as nn
+from sklearn.metrics import confusion_matrix
 from torch import optim
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
-from sklearn.metrics import confusion_matrix
-import seaborn as sns
 
 import custom_dataset
 import evaluator
@@ -18,8 +19,9 @@ test_images, test_categories = loader.load_images_from_folder_test("dataset/Test
 
 # data preprocessing - normalizacia
 train_transforms = transforms.Compose([
-    transforms.RandomHorizontalFlip(),  # data augmentation
-    transforms.RandomRotation(10),  # data augmentation
+    transforms.RandomRotation(10),  # pootocenie
+    transforms.RandomResizedCrop(size=(32, 32), scale=(0.7, 1.0)),  # scaling
+    transforms.ColorJitter(brightness=0.2),  # nahodné zosvetlenie
     transforms.Normalize(mean=[0.3193], std=[0.1605])
 ])
 
@@ -35,6 +37,16 @@ test_dataset = custom_dataset.CustomDataset(test_images, test_categories, transf
 # loadovanie batch-u dat
 train_loader = DataLoader(train_dataset, batch_size=2000, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=200, shuffle=True)
+
+class_weights = [0.02288235, 0.00476716, 0.00497442, 0.01634453, 0.00817227, 0.0088009,
+                 0.00497442, 0.00715073, 0.0088009, 0.00762745, 0.02288235, 0.00520053,
+                 0.00715073, 0.03813724, 0.03813724, 0.05720586, 0.00762745, 0.00476716,
+                 0.00520053, 0.00544818, 0.00953431, 0.02860293, 0.00457647, 0.00762745,
+                 0.02288235, 0.03813724, 0.01634453, 0.01906862, 0.02288235, 0.02860293,
+                 0.01271241, 0.05720586, 0.03813724, 0.02288235, 0.02860293, 0.03813724,
+                 0.05720586, 0.01271241, 0.05720586, 0.05720586, 0.03813724, 0.03813724,
+                 0.05720586]
+class_weights_tensor = torch.tensor(class_weights, dtype=torch.float)
 
 # vypocet priemeru a std pre transformacie, spustame len raz
 # mean_value, std_value = metric_calculator.calculate_mean_std(train_loader)
@@ -57,9 +69,9 @@ print(sum(
     for parameter in model.parameters()
 ))
 
-loss_fn = nn.CrossEntropyLoss()
+loss_fn = nn.CrossEntropyLoss(weight=class_weights_tensor)
 optimizer = optim.Adam(model.parameters(), 0.01)
-scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.9)
+scheduler = optim.lr_scheduler.StepLR(optimizer, gamma=0.9, step_size=2)
 
 train_losses = []
 validation_losses = []
@@ -68,9 +80,9 @@ accuracies = []
 
 best_validation_loss = float('inf')
 patience = 5  # Počet epoch, po ktorých sa má skoncit ak nemame lepsiu validation loss
-threshold = 0.9
+patience_counter = 0
 
-for epoch in range(0, 100):
+for epoch in range(0, 1000):
     model.train()
     e_loss = []
     for b_images, b_labels in train_loader:
@@ -89,17 +101,19 @@ for epoch in range(0, 100):
     validation_loss, accuracy = evaluator.evaluate_model(model, test_loader, loss_fn)
     validation_losses.append(validation_loss)
 
-    print('Epoch:', epoch, 'Train Loss:', train_losses[-1], 'Validation loss: ', validation_loss, 'Accuracy:', accuracy)
+    print('Epoch:', epoch, 'Train Loss:', train_losses[-1], 'Validation loss: ', validation_loss, 'Accuracy:', accuracy,
+          'Learning rate:', optimizer.param_groups[0]['lr'])
     epochs.append(epoch)
     accuracies.append(accuracy)
-
-    if accuracy >= threshold:
-        break
 
     # Early stopping
     if validation_loss < best_validation_loss:
         best_validation_loss = validation_loss
         patience_counter = 0
+
+        if best_validation_loss < 0.7:
+            torch.save(model.state_dict(), 'best_model.pt')
+            #print("Model saved with validation loss:", best_validation_loss)
     else:
         patience_counter += 1
         if patience_counter >= patience:
