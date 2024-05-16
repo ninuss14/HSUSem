@@ -62,20 +62,20 @@ class ConvolutionalNeuralNetwork(nn.Module):
         super(ConvolutionalNeuralNetwork, self).__init__()
         # zaciname s 32x32 shape
         # pouzivame dve konvolucne siete kde po prvej mame 30x30 feature map
-        self.conv1 = nn.Conv2d(1, 7, 3, 1, padding=0)  # z tejto vyjde: [batch_size, 10, 30, 30]
+        self.conv1 = nn.Conv2d(1, 5, 3, 1, padding=0)  # z tejto vyjde: [batch_size, 10, 30, 30]
         # ked aplikujeme pooling s 2x2 tak nam ostane 15x15 feature mapa
-        self.conv2 = nn.Conv2d(7, 14, 3, 1, padding=0)  # z tejto vyjde: [batch_size, 20, 13, 13]
+        self.conv2 = nn.Conv2d(5, 10, 3, 1, padding=0)  # z tejto vyjde: [batch_size, 20, 13, 13]
 
         # po druhej konvolucnej sieti nam vnikne 13x13 a po poolingu 6x6
         self.dropout = nn.Dropout2d()
         self.pool = nn.MaxPool2d(2, 2)  # rozdeli kazdu dimenziu napoly
 
-        self.bn1 = nn.BatchNorm2d(7)
-        self.bn2 = nn.BatchNorm2d(14)
+        self.bn1 = nn.BatchNorm2d(5)
+        self.bn2 = nn.BatchNorm2d(10)
 
         # mame 20 output channels - musi matchovat posledy output z konvolucnej siete
         # velkost vstupujuca do  linearnej vrstvy musi byt teda 20x6x6
-        self.l1 = nn.Linear(14 * 6 * 6, 128)  # 128 cislo mozeme menit, je to len common practice
+        self.l1 = nn.Linear(10 * 6 * 6, 128)  # 128 cislo mozeme menit, je to len common practice
         self.l2 = nn.Linear(128, 43)  # 43 zodpovedana poctu nasich kategorii 0-42
 
         self.apply(init_weights)  # inicializacia vah
