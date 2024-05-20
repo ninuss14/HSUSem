@@ -62,7 +62,7 @@ class ConvolutionalNeuralNetwork(nn.Module):
         super(ConvolutionalNeuralNetwork, self).__init__()
         # zaciname s 32x32 shape
         # pouzivame dve konvolucne siete kde po prvej mame 30x30 feature map
-        self.conv1 = nn.Conv2d(1, 5, 3, 1, padding=0)  # z tejto vyjde: [batch_size, 10, 30, 30]
+        self.conv1 = nn.Conv2d(3, 5, 3, 1, padding=0)  # z tejto vyjde: [batch_size, 10, 30, 30]
         # ked aplikujeme pooling s 2x2 tak nam ostane 15x15 feature mapa
         self.conv2 = nn.Conv2d(5, 10, 3, 1, padding=0)  # z tejto vyjde: [batch_size, 20, 13, 13]
 
@@ -92,7 +92,7 @@ class ConvolutionalNeuralNetwork(nn.Module):
 class FullyConvolutionalNeuralNetwork(nn.Module):
     def __init__(self):
         super(FullyConvolutionalNeuralNetwork, self).__init__()
-        self.conv1 = nn.Conv2d(1, 12, 3, padding=1)
+        self.conv1 = nn.Conv2d(3, 12, 3, padding=1)
         self.conv2 = nn.Conv2d(12, 24, 5, padding=1)
         self.conv3 = nn.Conv2d(24, 48, 3, padding=1)
         self.conv4 = nn.Conv2d(48, 64, 5, padding=1)

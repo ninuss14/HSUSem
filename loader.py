@@ -15,7 +15,7 @@ def load_image_from_folder_train(folder, image_size=(32, 32)):
         digit_folder = os.path.join(folder, number)
         for image in os.listdir(digit_folder):
             image_path = os.path.join(digit_folder, image)
-            img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+            img = cv2.imread(image_path, cv2.IMREAD_COLOR)
             if img is not None:
                 img_resized = cv2.resize(img, image_size)  # obrazky nie su rovnakej velkosti
                 images.append(img_resized)
@@ -39,7 +39,7 @@ def load_images_from_folder_test(folder, image_size=(32, 32)):
 
     for filename in os.listdir(folder):
         image_path = os.path.join(folder, filename)
-        img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+        img = cv2.imread(image_path, cv2.IMREAD_COLOR)
 
         if img is not None:
             img_resized = cv2.resize(img, image_size)  # obrazky nie su rovnakej velkosti

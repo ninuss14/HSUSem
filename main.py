@@ -12,6 +12,7 @@ import custom_dataset
 import evaluator
 import loader
 import neural_network
+import residual_network
 
 # nacitanie do tensorov
 train_images, train_categories = loader.load_image_from_folder_train('dataset/Train')
@@ -21,7 +22,7 @@ test_images, test_categories = loader.load_images_from_folder_test("dataset/Test
 train_transforms = transforms.Compose([
     transforms.RandomRotation(10),  # pootocenie
     transforms.RandomResizedCrop(size=(32, 32), scale=(0.7, 1.0)),  # scaling
-    transforms.ColorJitter(brightness=0.2),  # nahodné zosvetlenie
+    # transforms.ColorJitter(brightness=0.2),  # nahodné zosvetlenie
     transforms.Normalize(mean=[0.3193], std=[0.1605])
 ])
 
@@ -60,8 +61,8 @@ class_weights_tensor = torch.tensor(class_weights, dtype=torch.float)
 
 # trenovanie neuronovej siete
 # model = neural_network.ConvolutionalNeuralNetwork()
-model = neural_network.FullyConvolutionalNeuralNetwork()
-# model = residual_network.ResNet(residual_network.BasicBlock, [2, 2, 2, 2], num_classes=43)
+# model = neural_network.FullyConvolutionalNeuralNetwork()
+model = residual_network.ResNet(residual_network.BasicBlock, [2, 2, 2, 2, 1], num_classes=43)
 
 # vypis poctu parametrov modelu
 print(sum(
@@ -70,8 +71,8 @@ print(sum(
 ))
 
 loss_fn = nn.CrossEntropyLoss(weight=class_weights_tensor)
-optimizer = optim.Adam(model.parameters(), 0.01)
-scheduler = optim.lr_scheduler.StepLR(optimizer, gamma=0.95, step_size=3)
+optimizer = optim.Adam(model.parameters(), 0.012)
+scheduler = optim.lr_scheduler.StepLR(optimizer, gamma=0.95, step_size=2)
 
 train_losses = []
 validation_losses = []
@@ -115,7 +116,7 @@ for epoch in range(0, 1000):
         patience_counter = 0
 
         if best_validation_loss < 0.7:
-            torch.save(model.state_dict(), 'best_model.pt')
+            torch.save(model.state_dict(), 'best_model_conv_color.pt')
     else:
         patience_counter += 1
         if patience_counter >= patience:
